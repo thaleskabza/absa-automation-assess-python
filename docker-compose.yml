@@ -1,0 +1,106 @@
+services:
+  selenium-hub:
+    image: selenium/hub:4.8.0
+    container_name: selenium-hub
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mynetwork
+    ports:
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:4.8.0
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+
+  firefox:
+    image: selenium/node-firefox:4.8.0
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=5
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+
+  selenoid:
+    image: aerokube/selenoid:latest-release
+    container_name: selenoid
+    networks:
+      - mynetwork
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./selenoid/config:/etc/selenoid:ro
+      - ./selenoid/video:/opt/selenoid/video
+      - ./selenoid/logs:/opt/selenoid/logs
+    environment:
+      - OVERRIDE_VIDEO_OUTPUT_DIR=/opt/selenoid/video
+    command: [
+      "-conf", "/etc/selenoid/browsers.json",
+      "-video-output-dir", "/opt/selenoid/video",
+      "-log-output-dir", "/opt/selenoid/logs",
+      "-container-network", "mynetwork"
+    ]
+    ports:
+      - "4445:4444"
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-A
+    restart: always
+    networks:
+      - mynetwork
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpwd
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpwd
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: absa-web-auto-python
+    networks:
+      - mynetwork
+    environment:
+      SELENIUM_HUB_URL: "http://selenoid:4444/wd/hub"
+      DB_URL:        "jdbc:mysql://mysql:3306/testdb"
+      DB_USER:       "testuser"
+      DB_PASSWORD:   "testpwd"
+    depends_on:
+      selenoid:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./target/screenshots:/app/target/screenshots
+      - ./allure-results:/app/allure-results
+
+networks:
+  mynetwork: {}
+
