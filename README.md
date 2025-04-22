@@ -57,7 +57,7 @@ docker-compose down -v
 
 ## Assumptions & Decisions
 
-- **Synchronous waits**: Simple `time.sleep()` calls are used for demo; can be replaced with explicit WebDriver waits.
+- **Synchronous waits**: Simple `time.sleep()` 
 - **Unique usernames**: CSV-driven scenarios assume unique `UserName` fields or generate timestamped suffixes.
 - **Default hub URL**: Uses `SELENIUM_HUB_URL` env var, falling back to `http://selenium-hub-G:4444/wd/hub`.
 - **Containerized grid**: Docker Compose spins up a Hub + Chrome node for isolated CI runs.
@@ -77,39 +77,3 @@ docker-compose down -v
 ## Directory Structure
 ```
 .
-
-
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-import os
-import time
-from urllib3.exceptions import MaxRetryError
-from selenium.common.exceptions import WebDriverException
-
-def before_all(context):
-    os.makedirs("screenshots", exist_ok=True)
-
-    hub = os.getenv("SELENIUM_HUB_URL", "http://selenium-hub:4444/wd/hub")
-    browser = os.getenv("BROWSER_NAME", "chrome").upper()
-
-    try:
-        caps = getattr(DesiredCapabilities, browser).copy()
-    except AttributeError:
-        raise ValueError(f"Unsupported browser: {browser}. Use CHROME or FIREFOX.")
-
-    max_retries = 5
-    retry_delay = 5
-    for attempt in range(max_retries):
-        try:
-            context.driver = webdriver.Remote(command_executor=hub, desired_capabilities=caps)
-            context.driver.maximize_window()
-            break
-        except (MaxRetryError, WebDriverException) as e:
-            if attempt == max_retries - 1:
-                raise
-            print(f"Connection attempt {attempt + 1} failed, retrying in {retry_delay} seconds...")
-            time.sleep(retry_delay)
-
-def after_all(context):
-    if hasattr(context, 'driver') and context.driver:
-        context.driver.quit()

@@ -1,6 +1,6 @@
 from locust import HttpUser, task, between
 
-# Replace with your actual Petfinder credentials
+
 CLIENT_ID = "gbfuckDsPVmzzxskuQpgdeQ5tvZYX6NTa9vFszNJLkg8oTeQOK"
 CLIENT_SECRET = "Y0E5cR6pNrzJinSZuvFlSVDws5NZINH4OdkJtK0d"
 

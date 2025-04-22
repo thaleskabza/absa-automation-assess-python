@@ -2,9 +2,9 @@
 import pytest
 import requests
 
-# Replace with your actual Petfinder credentials
-CLIENT_ID = "gbfuckDsPVmzzxskuQpgdeQ5tvZYX6NTa9vFszNJLkg8oTeQOK"
-CLIENT_SECRET = "Y0E5cR6pNrzJinSZuvFlSVDws5NZINH4OdkJtK0d"
+
+CLIENT_ID = "1yIxd8HkNjV4ymqLi2GhaFFYOps9SrpEeT0cUWSSWwDAVHKxeF"
+CLIENT_SECRET = "kih7OW7Q3yGiVK4i7Y33hEwsS24eEWRyiN6gaNMt"
 
 @pytest.fixture(scope="session")
 def token():
