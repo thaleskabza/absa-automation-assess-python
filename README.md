@@ -1,79 +1,65 @@
-## README.md
+# Automated Testing Suite
 
-# Python UI Automation for Web Tables
-
-This repository contains a Python/Behave/Selenium automation suite for testing the Web Tables example on `http://www.way2automation.com/angularjs-protractor/webtables/`.
+This repository contains Python-based automated tests for the Petfinder API and web UI, including API, performance (Locust), and UI (pytest-bdd with Selenium) tests, orchestrated via Docker and GitHub Actions.
 
 ## Setup Instructions
 
-### Prerequisites
 
-- Python 3.9 or later
-- pip (Python package manager)
-- Docker & Docker Compose (optional, for containerized execution)
-- A running Selenium Grid (via Docker Compose or external)
-
-### Installing Dependencies
-
-```bash
-pip install --no-cache-dir -r requirements.txt
-```
-
-```bash
-docker build -t absa-auto-python .
-
-
-#
-
-```bash
-docker compose up -d  
-
-#
-
-```bash
-docker compose down -v   
-
-### Running Tests Locally
-
-1. Ensure a Selenium Hub is available at `SELENIUM_HUB_URL` (default: `http://localhost:4444/wd/hub`).
-2. Start a browser node or use Docker Compose (see below).
-3. Execute:
+1. **Install Python dependencies**
    ```bash
-   behave --format pretty
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
    ```
 
-### Running Tests with Docker Compose
 
+2. **Start Docker services for UI tests**
+   ```bash
+   docker-compose up -d
+   ```
+   This will start Selenoid (for browser sessions) and MySQL (for tests).
+
+3. **(Optional) Install Allure CLI**  
+   ```bash
+   npm install -g allure-commandline --save-dev
+   ```
+
+## Running Tests
+
+### API Tests
 ```bash
-docker-compose up -d --build  # starts hub, node, and test-runner
-# tests will run automatically in test-runner
-# once complete, bring down the grid:
-docker-compose down -v
+pytest api_tests/ --html=report.html --self-contained-html --alluredir=allure-results
 ```
 
-## Project Structure
+### Performance Tests
+```bash
+locust -f performance_tests/test_petfinder_real.py --headless -u 10 -r 2 -t 3m --host https://api.petfinder.com
+```
+Results will be saved in `load-test-results/`.
 
+### UI Automation Tests
+```bash
+pytest -v --maxfail=1 --disable-warnings --alluredir=allure-results --html=report.html -n auto
+```
+- Ensure Docker Compose is running.
+- Video recordings and logs are stored in `./selenoid/video` and `./selenoid/logs`.
 
+## 
 
 ## Assumptions & Decisions
 
-- **Synchronous waits**: Simple `time.sleep()` 
-- **Unique usernames**: CSV-driven scenarios assume unique `UserName` fields or generate timestamped suffixes.
-- **Default hub URL**: Uses `SELENIUM_HUB_URL` env var, falling back to `http://selenium-hub-G:4444/wd/hub`.
-- **Containerized grid**: Docker Compose spins up a Hub + Chrome node for isolated CI runs.
+- Python 3.9 is the target runtime for consistency with GitHub Actions.
+- Locust used for lightweight performance testing; headless execution for CI.
+- Selenoid chosen over standalone Selenium Grid for video recording support.
+- Tests configured to be idempotent; CSV test data is loaded per-test.
 
-## Tools & Resources Used
+## Tools & Resources
 
-- **Language**: Python 3.9
-- **Automation**: Selenium WebDriver 4.x
-- **BDD**: Behave 1.2+
-- **Docker**: `selenium/hub` & `selenium/node-chrome` images
-- **CI/CD**: GitHub Actions
-- **Test Data**: CSV file (`src/test/resources/testdata/users.csv`)
-- **Browser Drivers**: Managed via remote Selenium Grid
+- **Python** 3.9
+- **pytest** / pytest-bdd / pytest-html / allure-pytest
+- **Selenium** 4.8.0 + Selenoid
+- **Locust** 2.16.0
+- **GitHub Actions** for CI
+- **Docker Compose** for UI test infrastructure
+- **Allure** for advanced reporting
+- **Requests** / **Requests-Mock** for API interactions
 
----
-
-## Directory Structure
-```
-.
