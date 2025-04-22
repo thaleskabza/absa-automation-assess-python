@@ -1,0 +1,21 @@
+### requirements.txt
+# UI testing
+selenium==4.8.0
+webdriver-manager==3.8.5
+
+# BDD & reporting
+behave==1.2.6
+allure-behave==2.13.2
+
+# Optional: Pytest-based testing and reporting
+pytest==7.2.2
+pytest-bdd==4.0.2
+pytest-html==3.2.0
+allure-pytest>=2.9.45
+
+# HTTP & mocking
+requests==2.31.0
+requests-mock==1.12.1
+
+# Performance testing
+locust==2.16.0
