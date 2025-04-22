@@ -1,0 +1,40 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  performance-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create results directory
+        run: mkdir -p load-test-results
+
+      - name: Execute Locust headless load test
+        run: |
+          locust -f performance_tests/test_petfinder_real.py \
+            --headless \
+            -u 10 -r 2 \
+            -t 3m \
+            --host https://api.petfinder.com
+
+      - name: Upload Locust summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: locust-summary
+          path: load-test-results/summary.json

@@ -1,0 +1,23 @@
+{
+    "chrome": {
+      "default": "114.0",
+      "versions": {
+        "114.0": {
+          "image": "selenium/node-chrome:4.8.0-20240212",
+          "port": "4444",
+          "path": "/wd/hub"
+        }
+      }
+    },
+    "firefox": {
+      "default": "115.0",
+      "versions": {
+        "115.0": {
+          "image": "selenium/node-firefox:4.8.0-20240212",
+          "port": "4444",
+          "path": "/wd/hub"
+        }
+      }
+    }
+  }
+  
